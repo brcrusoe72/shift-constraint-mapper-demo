@@ -1,7 +1,7 @@
 window.DEEP_CONSTRAINTS_CONFIG = {
   siteName: "Crusoe Advisory",
   toolName: "Deep Constraints Triage",
-  publicUrl: "https://crusoeadvisory.com/tools/deep-constraints-triage/",
+  publicUrl: "https://brcrusoe72.github.io/shift-constraint-mapper-demo/",
   analyticsEnabled: false,
   plausibleDomain: "",
   feedbackUrl: "",
