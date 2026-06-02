@@ -1,76 +1,74 @@
 # Shift Constraint Mapper Demo
 
-Static GitHub Pages demo for the Shift Constraint Mapper newsletter CTA.
+Public static demo for **Shift Constraint Mapper**, a first-version manufacturing passdown and plant-memory prototype.
 
-## What This Is
-
-Shift Constraint Mapper turns raw shift events into plant memory:
-
-- real passdown
-- top constraints
-- recurrence watchlist
-- RCA starter
-- 7/30/90 verification checks
-
-This public version runs entirely in the browser. It does not include the Express backend, shared-path loading, or API-backed AI narrative generation.
-
-## Use It Locally
-
-Open `index.html` in a browser, or serve the folder:
-
-```bash
-python3 -m http.server 8080
-```
-
-Then open:
-
-```text
-http://localhost:8080/
-```
-
-Click **Load Demo** or upload:
-
-```text
-sample_data/shift_constraint_mapper_demo.csv
-```
-
-## GitHub Pages Setup
-
-Create a public repository named:
-
-```text
-shift-constraint-mapper-demo
-```
-
-Push this folder as the repository root.
-
-In GitHub:
-
-1. Go to **Settings -> Pages**.
-2. Source: **Deploy from a branch**.
-3. Branch: **main**.
-4. Folder: **/root**.
-5. Save.
-
-The expected URL is:
+Expected GitHub Pages URL:
 
 ```text
 https://brcrusoe72.github.io/shift-constraint-mapper-demo/
 ```
 
-## Newsletter Link Text
+## What This Is
 
-Use:
+Shift Constraint Mapper turns a raw shift event into a practical plant-memory loop:
+
+```text
+raw shift event -> real passdown -> constraint map -> recurrence watchlist -> 7/30/90 verification
+```
+
+The demo runs entirely in the browser. It uses deterministic parsing and classification logic, bundled sample data, and local file upload.
+
+## What This Is Not
+
+This is not production deployed. It is not enterprise-ready. It is not a MES replacement. It does not use private plant data, backend APIs, OpenAI, Anthropic, or server-side secrets.
+
+## How To Use The Demo
+
+1. Open the GitHub Pages URL.
+2. Click **Load Demo** to load the bundled sample shift.
+3. Review **Overview**, **Passdown**, **Constraints**, and **Verify**.
+4. Use **Download sample CSV** to inspect the input data.
+5. Use **Open proof artifact** to see the raw-event-to-plant-memory example in Markdown.
+
+You can also upload a local CSV, XLSX, XLS, XLSM, or ODS passdown file. The file is parsed in your browser.
+
+## Sample Data
+
+The bundled sample is:
+
+```text
+sample_data/shift_constraint_mapper_demo.csv
+```
+
+It contains one demo shift:
+
+- Passdown id: `SCM-DEMO-2026-05-22-3RD`
+- Line: `Line 2`
+- Context: `Family B changeover`
+- Total event downtime: `118` minutes
+- Downtime events: wrapper stops, checker/drive-off labor coverage, temporary sensor bypass
+
+The proof artifact is:
+
+```text
+artifacts/raw-event-to-plant-memory-demo.md
+```
+
+## GitHub Pages Setup
+
+This repository is meant to be served from the repo root.
+
+GitHub settings:
+
+```text
+Settings -> Pages -> Deploy from branch -> main -> /root -> Save
+```
+
+The static build files live at the repository root, not inside a nested `dist/` folder.
+
+## Newsletter Link Text
 
 ```text
 I built a small prototype around the loop in this essay: raw shift event -> real passdown -> constraint map -> recurrence watchlist -> 7/30/90 verification.
 ```
 
-Then link to the GitHub Pages URL.
-
-## Files
-
-- `index.html` - static demo app
-- `assets/` - built JS/CSS bundle
-- `sample_data/shift_constraint_mapper_demo.csv` - demo input file
-- `artifacts/raw-event-to-plant-memory-demo.md` - screenshot-ready proof artifact
