@@ -1,14 +1,316 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shift Constraint Mapper</title>
-    <script type="module" crossorigin src="./assets/index-pcl03VQu.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DRRqh0KE.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Deep Constraints Triage</title>
+    <meta name="description" content="A shift-floor troubleshooting workflow for equipment issues, missing parts, downtime risk, escalation decisions, manual references, and clean passdown notes.">
+    <link rel="canonical" href="https://crusoeadvisory.com/tools/deep-constraints-triage/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Deep Constraints Triage">
+    <meta property="og:description" content="A shift-floor troubleshooting workflow for equipment issues, missing parts, downtime risk, escalation decisions, and passdown quality.">
+    <meta property="og:url" content="https://crusoeadvisory.com/tools/deep-constraints-triage/">
+    <meta property="og:image" content="https://crusoeadvisory.com/tools/deep-constraints-triage/social-card.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Deep Constraints Triage">
+    <meta name="twitter:description" content="A shift-floor troubleshooting workflow for equipment issues, missing parts, downtime risk, escalation decisions, and passdown quality.">
+    <meta name="twitter:image" content="https://crusoeadvisory.com/tools/deep-constraints-triage/social-card.png">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <!-- Add the Plausible script on the public site if you use Plausible Analytics. See docs/analytics.md. -->
+    <link rel="stylesheet" href="styles.css">
   </head>
-  <body class="bg-mist">
-    <div id="root"></div>
+  <body>
+    <header class="app-header">
+      <div class="brand-block">
+        <p class="kicker">Public trial MVP</p>
+        <h1>Deep Constraints Triage</h1>
+        <p class="subhead">A shift-floor workflow for equipment issues, missing parts, escalation decisions, downtime risk, and clean passdown notes.</p>
+      </div>
+      <div class="header-actions" aria-label="Global actions">
+        <button class="button button-secondary" id="loadSample" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h10l6 6v10H4V4zm9 1.5V11h5.5M8 15h8M8 18h5"/></svg>
+          Load sample
+        </button>
+        <button class="button button-ghost" id="shareTool" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 8 8 12l8 4M18 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm10 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+          Share
+        </button>
+        <a class="button button-ghost is-hidden" id="feedbackLink" href="#" target="_blank" rel="noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"/></svg>
+          Feedback
+        </a>
+        <button class="button button-ghost" id="clearForm" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V5h6v2m-8 3 1 9h8l1-9"/></svg>
+          Clear
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel intake-panel" aria-labelledby="intake-title">
+        <div class="panel-heading">
+          <div>
+            <p class="kicker">Step 1</p>
+            <h2 id="intake-title">Incident Intake</h2>
+          </div>
+          <span class="state-pill" id="saveState">Live draft</span>
+        </div>
+
+        <form id="triageForm" class="triage-form">
+          <fieldset>
+            <legend>Issue</legend>
+            <label class="field span-2">
+              <span>Equipment issue</span>
+              <textarea id="issue" rows="4" placeholder="Conveyor stopped during normal running. Sprocket split into two pieces."></textarea>
+            </label>
+            <label class="field">
+              <span>Line</span>
+              <input id="line" type="text" placeholder="Line 3">
+            </label>
+            <label class="field">
+              <span>Equipment</span>
+              <input id="equipment" type="text" placeholder="Case conveyor">
+            </label>
+            <label class="field">
+              <span>Shift</span>
+              <select id="shift">
+                <option>Third shift</option>
+                <option>First shift</option>
+                <option>Second shift</option>
+                <option>Weekend shift</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Line priority</span>
+              <select id="priority">
+                <option value="">Select priority</option>
+                <option value="critical">Critical customer or startup line</option>
+                <option value="high">High priority line</option>
+                <option value="normal">Normal priority line</option>
+                <option value="low">Lower priority line</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Constraints</legend>
+            <label class="field">
+              <span>Minutes down so far</span>
+              <input id="minutesDown" type="number" min="0" step="5" value="0">
+            </label>
+            <label class="field">
+              <span>Repair estimate, minutes</span>
+              <input id="repairMinutes" type="number" min="0" step="5" value="0">
+            </label>
+            <label class="field">
+              <span>Standard rate per hour</span>
+              <input id="ratePerHour" type="number" min="0" step="10" value="0">
+            </label>
+            <label class="field">
+              <span>Downtime cost per hour</span>
+              <input id="costPerHour" type="number" min="0" step="50" value="0">
+            </label>
+            <label class="field">
+              <span>People reassigned from down line</span>
+              <input id="peopleReassigned" type="number" min="0" step="1" value="0">
+            </label>
+            <label class="field">
+              <span>Maintenance techs available</span>
+              <input id="maintenanceTechs" type="number" min="0" step="1" value="0">
+            </label>
+            <label class="field">
+              <span>Total shift production staff</span>
+              <input id="productionStaff" type="number" min="0" step="1" value="0">
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Maintenance Findings</legend>
+            <label class="field span-2">
+              <span>What maintenance found</span>
+              <textarea id="finding" rows="4" placeholder="Plastic sprocket failed. Exact spare not found. Similar sprocket found in storeroom."></textarea>
+            </label>
+            <label class="field">
+              <span>Exact part number</span>
+              <input id="exactPart" type="text" placeholder="OEM-12345">
+            </label>
+            <label class="field">
+              <span>Exact part status</span>
+              <select id="exactPartStatus">
+                <option value="unknown">Unknown</option>
+                <option value="available">Available</option>
+                <option value="missing">Missing</option>
+                <option value="ordered">Ordered</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Approximate part</span>
+              <input id="approxPart" type="text" placeholder="Similar sprocket from Line 5 bin">
+            </label>
+            <label class="field">
+              <span>Where found</span>
+              <input id="approxLocation" type="text" placeholder="Maintenance crib B">
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Decision Capture</legend>
+            <label class="field">
+              <span>Current decision status</span>
+              <select id="decisionStatus">
+                <option value="open">Open / troubleshooting</option>
+                <option value="escalated">Escalated for review</option>
+                <option value="approved">Repair path approved</option>
+                <option value="waiting">Waiting on part or support</option>
+                <option value="contained">Contained on alternate line</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Decision owner</span>
+              <input id="decisionOwner" type="text" placeholder="Supervisor, maintenance lead, planner">
+            </label>
+            <label class="field span-2">
+              <span>Next action due</span>
+              <input id="nextActionDue" type="text" placeholder="Call maintenance supervisor by 2:00 a.m.; verify bore and keyway before restart.">
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Approximate Part Checks</legend>
+            <div class="check-grid span-2" id="fitChecks">
+              <label><input type="checkbox" id="fitPitch"> Chain pitch or belt profile matches</label>
+              <label><input type="checkbox" id="fitBore"> Bore or shaft size matches</label>
+              <label><input type="checkbox" id="fitTeeth"> Tooth count or diameter is acceptable</label>
+              <label><input type="checkbox" id="fitWidth"> Width and hub clearance are acceptable</label>
+              <label><input type="checkbox" id="fitKeyway"> Keyway, set screw, or fastening method matches</label>
+              <label><input type="checkbox" id="fitMaterial"> Material and load rating are acceptable</label>
+              <label><input type="checkbox" id="fitGuarding"> Guarding and pinch-point clearance remain safe</label>
+              <label><input type="checkbox" id="fitSupervisor"> Maintenance supervisor reviewed the option</label>
+            </div>
+          </fieldset>
+
+          <label class="field full-width">
+            <span>Manual note or known reference</span>
+            <textarea id="manualNote" rows="3" placeholder="Paste a manual line, photo note, or known adjustment point here."></textarea>
+          </label>
+        </form>
+      </section>
+
+      <div class="right-rail">
+        <section class="panel status-panel" aria-labelledby="status-title">
+          <div class="panel-heading compact">
+            <div>
+              <p class="kicker">Live view</p>
+              <h2 id="status-title">Decision Status</h2>
+            </div>
+            <span class="risk-badge" id="riskBadge">Risk pending</span>
+          </div>
+
+          <div class="line-visual" aria-label="Constraint status visualization">
+            <div class="line-track">
+              <span class="station station-on"></span>
+              <span class="station station-on"></span>
+              <span class="station station-stop" id="constraintStation"></span>
+              <span class="station station-muted"></span>
+              <span class="station station-muted"></span>
+            </div>
+            <div class="line-labels">
+              <span>Upstream</span>
+              <span>Constraint</span>
+              <span>Protected flow</span>
+            </div>
+          </div>
+
+          <dl class="metrics-grid">
+            <div>
+              <dt>Projected downtime</dt>
+              <dd id="projectedDowntime">0 min</dd>
+            </div>
+            <div>
+              <dt>Lost units estimate</dt>
+              <dd id="lostUnits">0</dd>
+            </div>
+            <div>
+              <dt>Downtime cost estimate</dt>
+              <dd id="downtimeCost">$0</dd>
+            </div>
+            <div>
+              <dt>Part-fit confidence</dt>
+              <dd id="fitConfidence">0%</dd>
+            </div>
+            <div>
+              <dt>Escalation need</dt>
+              <dd id="escalationNeed">Pending</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="panel" aria-labelledby="support-title">
+          <div class="panel-heading compact">
+            <div>
+              <p class="kicker">Step 2</p>
+              <h2 id="support-title">Decision Support</h2>
+            </div>
+          </div>
+
+          <div class="support-block">
+            <h3>Recommendation</h3>
+            <p id="recommendation">Enter an issue and findings to generate a decision path.</p>
+          </div>
+
+          <div class="support-block">
+            <h3>Manual hints</h3>
+            <ul class="plain-list" id="manualHints"></ul>
+          </div>
+
+          <div class="support-block">
+            <h3>Escalation questions</h3>
+            <ol class="question-list" id="escalationQuestions"></ol>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="passdown-title">
+          <div class="panel-heading compact">
+            <div>
+              <p class="kicker">Step 3</p>
+              <h2 id="passdown-title">Shift Passdown</h2>
+            </div>
+            <div class="mini-actions">
+              <button class="icon-button" id="copyNote" type="button" aria-label="Copy passdown note">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h10v12H8V8zm-2 8H4V4h10v2"/></svg>
+              </button>
+              <button class="icon-button" id="addToLog" type="button" aria-label="Save incident to log">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+              <button class="icon-button" id="exportJson" type="button" aria-label="Export incident JSON">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 20h14"/></svg>
+              </button>
+            </div>
+          </div>
+          <textarea id="passdownNote" class="passdown-note" rows="12" readonly></textarea>
+          <p class="action-status" id="actionStatus" aria-live="polite"></p>
+        </section>
+
+        <section class="panel" aria-labelledby="log-title">
+          <div class="panel-heading compact">
+            <div>
+              <p class="kicker">Step 4</p>
+              <h2 id="log-title">Local Issue Log</h2>
+            </div>
+            <button class="icon-button" id="clearLog" type="button" aria-label="Clear local issue log">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V5h6v2m-8 3 1 9h8l1-9"/></svg>
+            </button>
+          </div>
+          <div class="log-list" id="logList"></div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="public-trial-footer">
+      <p>Decision support only. This public trial does not authorize repairs, bypass maintenance judgment, or approve unsafe substitutions. Drafts and saved incidents stay in this browser unless exported.</p>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
   </body>
 </html>
