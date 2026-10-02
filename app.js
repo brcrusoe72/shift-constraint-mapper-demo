@@ -136,64 +136,62 @@ const appConfig = {
 };
 let hasTrackedToolStart = false;
 
-if (typeof document !== "undefined") {
-  document.addEventListener("DOMContentLoaded", () => {
-    setupPublicTrial();
+document.addEventListener("DOMContentLoaded", () => {
+  setupPublicTrial();
 
-    ids.forEach((id) => {
-      elements[id] = document.getElementById(id);
-    });
-  
-    elements.riskBadge = document.getElementById("riskBadge");
-    elements.projectedDowntime = document.getElementById("projectedDowntime");
-    elements.lostUnits = document.getElementById("lostUnits");
-    elements.downtimeCost = document.getElementById("downtimeCost");
-    elements.fitConfidence = document.getElementById("fitConfidence");
-    elements.escalationNeed = document.getElementById("escalationNeed");
-    elements.recommendation = document.getElementById("recommendation");
-    elements.manualHints = document.getElementById("manualHints");
-    elements.escalationQuestions = document.getElementById("escalationQuestions");
-    elements.passdownNote = document.getElementById("passdownNote");
-    elements.actionStatus = document.getElementById("actionStatus");
-    elements.logList = document.getElementById("logList");
-    elements.constraintStation = document.getElementById("constraintStation");
-    elements.saveState = document.getElementById("saveState");
-  
-    ids.forEach((id) => {
-      const eventName = checkboxFields.has(id) ? "change" : "input";
-      elements[id].addEventListener(eventName, () => {
-        update();
-        trackToolStart();
-      });
-    });
-  
-    document.getElementById("loadSample").addEventListener("click", () => {
-      setForm(sampleIncident);
-      setStatus("Sample loaded");
-      update();
-      const analysis = analyzeIncident(collectForm());
-      trackEvent("Sample Loaded", eventProps(analysis));
-    });
-  
-    document.getElementById("clearForm").addEventListener("click", () => {
-      document.getElementById("triageForm").reset();
-      setStatus("Draft cleared");
-      update();
-      hasTrackedToolStart = false;
-      trackEvent("Draft Cleared");
-    });
-  
-    document.getElementById("copyNote").addEventListener("click", copyPassdown);
-    document.getElementById("addToLog").addEventListener("click", saveIncident);
-    document.getElementById("exportJson").addEventListener("click", exportIncident);
-    document.getElementById("shareTool").addEventListener("click", shareTool);
-    document.getElementById("clearLog").addEventListener("click", clearLocalLog);
-
-    restoreDraft();
-    update();
-    renderLog();
+  ids.forEach((id) => {
+    elements[id] = document.getElementById(id);
   });
-}
+
+  elements.riskBadge = document.getElementById("riskBadge");
+  elements.projectedDowntime = document.getElementById("projectedDowntime");
+  elements.lostUnits = document.getElementById("lostUnits");
+  elements.downtimeCost = document.getElementById("downtimeCost");
+  elements.fitConfidence = document.getElementById("fitConfidence");
+  elements.escalationNeed = document.getElementById("escalationNeed");
+  elements.recommendation = document.getElementById("recommendation");
+  elements.manualHints = document.getElementById("manualHints");
+  elements.escalationQuestions = document.getElementById("escalationQuestions");
+  elements.passdownNote = document.getElementById("passdownNote");
+  elements.actionStatus = document.getElementById("actionStatus");
+  elements.logList = document.getElementById("logList");
+  elements.constraintStation = document.getElementById("constraintStation");
+  elements.saveState = document.getElementById("saveState");
+
+  ids.forEach((id) => {
+    const eventName = checkboxFields.has(id) ? "change" : "input";
+    elements[id].addEventListener(eventName, () => {
+      update();
+      trackToolStart();
+    });
+  });
+
+  document.getElementById("loadSample").addEventListener("click", () => {
+    setForm(sampleIncident);
+    setStatus("Sample loaded");
+    update();
+    const analysis = analyzeIncident(collectForm());
+    trackEvent("Sample Loaded", eventProps(analysis));
+  });
+
+  document.getElementById("clearForm").addEventListener("click", () => {
+    document.getElementById("triageForm").reset();
+    setStatus("Draft cleared");
+    update();
+    hasTrackedToolStart = false;
+    trackEvent("Draft Cleared");
+  });
+
+  document.getElementById("copyNote").addEventListener("click", copyPassdown);
+  document.getElementById("addToLog").addEventListener("click", saveIncident);
+  document.getElementById("exportJson").addEventListener("click", exportIncident);
+  document.getElementById("shareTool").addEventListener("click", shareTool);
+  document.getElementById("clearLog").addEventListener("click", clearLocalLog);
+
+  restoreDraft();
+  update();
+  renderLog();
+});
 
 function setupPublicTrial() {
   setupAnalytics();
