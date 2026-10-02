@@ -246,7 +246,7 @@ function collectForm() {
     if (checkboxFields.has(id)) {
       values[id] = element.checked;
     } else if (numberFields.has(id)) {
-      values[id] = Number(element.value || 0);
+      values[id] = normalizeNonnegativeNumber(element.value);
     } else {
       values[id] = element.value.trim();
     }
@@ -303,6 +303,8 @@ function trackToolStart() {
 }
 
 function analyzeIncident(values) {
+  values = normalizeValues(values);
+
   const hasIncident = Boolean(
     values.issue ||
     values.finding ||
@@ -697,10 +699,24 @@ function clearLocalLog() {
 
 function readIncidents() {
   try {
-    return JSON.parse(localStorage.getItem("deepConstraintsIncidents")) || [];
+    const incidents = JSON.parse(localStorage.getItem("deepConstraintsIncidents"));
+    return Array.isArray(incidents) ? incidents : [];
   } catch (error) {
     return [];
   }
+}
+
+function normalizeNonnegativeNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : 0;
+}
+
+function normalizeValues(values = {}) {
+  const normalized = { ...values };
+  numberFields.forEach((field) => {
+    normalized[field] = normalizeNonnegativeNumber(values[field]);
+  });
+  return normalized;
 }
 
 function restoreDraft() {
@@ -899,4 +915,12 @@ function copyShareUrl(url) {
   }
 
   setStatus(url);
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    analyzeIncident,
+    normalizeNonnegativeNumber,
+    normalizeValues
+  };
 }
