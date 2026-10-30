@@ -67,3 +67,10 @@ test("preserves valid downtime calculations", () => {
   assert.equal(analysis.lostUnits, 120);
   assert.equal(analysis.downtimeCost, 600);
 });
+
+test("rejects huge finite inputs before calculation can overflow", () => {
+  const analysis = analyzeIncident({issue: "Test", minutesDown: Number.MAX_VALUE, repairMinutes: Number.MAX_VALUE, ratePerHour: Number.MAX_VALUE, costPerHour: Number.MAX_VALUE});
+  assert.equal(analysis.projectedDowntime, 0);
+  assert.equal(analysis.lostUnits, 0);
+  assert.equal(analysis.downtimeCost, 0);
+});
