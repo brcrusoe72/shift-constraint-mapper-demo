@@ -273,8 +273,12 @@ function update() {
   renderMetrics(analysis);
   renderSupport(values, analysis);
   elements.passdownNote.value = buildPassdown(values, analysis);
-  localStorage.setItem("deepConstraintsDraft", JSON.stringify(values));
-  elements.saveState.textContent = "Draft saved";
+  try {
+    localStorage.setItem("deepConstraintsDraft", JSON.stringify(values));
+    elements.saveState.textContent = "Draft saved";
+  } catch {
+    elements.saveState.textContent = "Draft not saved — browser storage unavailable";
+  }
 }
 
 function trackToolStart() {
@@ -608,6 +612,10 @@ function saveIncident() {
   const values = collectForm();
   const analysis = analyzeIncident(values);
   const incidents = readIncidents();
+  if (incidents === null) {
+    setStatus("Incident not saved: cannot read the local log. Export this incident as JSON.");
+    return;
+  }
   const title = values.line || values.equipment || "Unlabeled incident";
 
   incidents.unshift({
@@ -625,7 +633,12 @@ function saveIncident() {
     passdown: buildPassdown(values, analysis)
   });
 
-  localStorage.setItem("deepConstraintsIncidents", JSON.stringify(incidents.slice(0, 12)));
+  try {
+    localStorage.setItem("deepConstraintsIncidents", JSON.stringify(incidents.slice(0, 12)));
+  } catch {
+    setStatus("Incident not saved: browser storage unavailable. Export this incident as JSON.");
+    return;
+  }
   renderLog();
   setStatus("Incident saved to local log");
   trackEvent("Incident Saved", eventProps(analysis));
@@ -668,10 +681,12 @@ function renderLog() {
   const incidents = readIncidents();
   elements.logList.innerHTML = "";
 
-  if (incidents.length === 0) {
+  if (incidents === null || incidents.length === 0) {
     const empty = document.createElement("p");
     empty.className = "log-empty";
-    empty.textContent = "No saved incidents yet.";
+    empty.textContent = incidents === null
+      ? "Cannot read the local log. Existing data has not been changed."
+      : "No saved incidents yet.";
     elements.logList.appendChild(empty);
     return;
   }
@@ -699,10 +714,18 @@ function clearLocalLog() {
 
 function readIncidents() {
   try {
-    const incidents = JSON.parse(localStorage.getItem("deepConstraintsIncidents"));
-    return Array.isArray(incidents) ? incidents : [];
-  } catch (error) {
-    return [];
+    const raw = localStorage.getItem("deepConstraintsIncidents");
+    if (raw === null) return [];
+    const incidents = JSON.parse(raw);
+    // Only a missing key means a new log. Never overwrite unreadable history.
+    if (!Array.isArray(incidents) || !incidents.every(row =>
+      row && typeof row.title === "string" &&
+      ["low", "medium", "high", "pending"].includes(row.analysis?.riskLevel) &&
+      Number.isFinite(row.analysis.projectedDowntime) && Number.isFinite(row.analysis.fitPercent)
+    )) return null;
+    return incidents;
+  } catch {
+    return null;
   }
 }
 
